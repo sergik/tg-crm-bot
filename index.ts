@@ -51,13 +51,9 @@ bot.command("pnh", async (ctx) => {
 });
 
 const leadBtns = [leadButton, notLeadButton];
-for (const btn of leadBtns) {
-  bot.callbackQuery(btn, async (ctx) => {
-    await stateMachine.dispatch("input", { ctx });
-  });
-}
+const btns = [...leadBtns, ...priorityButtons];
 
-for (const btn of priorityButtons) {
+for (const btn of btns) {
   bot.callbackQuery(btn, async (ctx) => {
     await stateMachine.dispatch("input", { ctx });
   });
