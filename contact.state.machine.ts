@@ -4,6 +4,7 @@ import { cancelAction } from "./state.actions/cancel";
 import { toWaitingLeadAction } from "./state.actions/to.is.lead";
 import { toPriorityAction } from "./state.actions/to.priority";
 import { fromPriorityAction } from "./state.actions/from.priority";
+import { loadAdditionalData } from "./state.actions/load.additional.data";
 
 type ContactMachineStates =
   | "idle"
@@ -83,11 +84,7 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
     },
     input: {
       state: "waiting_for_other_input",
-      action: async (ctx, _) => {
-        await ctx.reply(
-          `You can add additional pictures, voice recordings or messages. Write /s to save contact.`
-        );
-      },
+      action: loadAdditionalData,
     },
     cancel: cancelActionDef,
   },

@@ -3,6 +3,9 @@ export type Contact = {
   companyName: string | null;
   isLead: boolean | null;
   priority: ContactPriority | null;
+  photoIds: Array<string>;
+  additionalNotes: Array<string>;
+  voiceIds: Array<string>;
 };
 
 export type ContactPriority = "high" | "medium" | "low" | "other";
@@ -19,6 +22,9 @@ export class TempContactStore {
       companyName: null,
       isLead: null,
       priority: null,
+      photoIds: [],
+      additionalNotes: [],
+      voiceIds: [],
     };
   }
 
