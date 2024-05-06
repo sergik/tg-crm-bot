@@ -4,11 +4,13 @@ import { TempContactStore } from "./temp.contact.store";
 import { config } from "./config";
 import { leadButton, notLeadButton } from "./state.actions/to.is.lead";
 import { buttons as priorityButtons } from "./state.actions/to.priority";
+import { HubspotStore } from "./crm/hubspot/hubspot.store";
 
 const bot = new Bot(config.BOT_TOKEN);
+const hubSpotClient = new HubspotStore(config.HUBSPOT_TOKEN);
 
 const tmpContactStore = new TempContactStore();
-const stateMachine = new ContactStateMachine(tmpContactStore);
+const stateMachine = new ContactStateMachine(tmpContactStore, hubSpotClient);
 
 bot.command("a", async (ctx) => {
   await dispatchWithErrorHandling(

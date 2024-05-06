@@ -1,7 +1,7 @@
 export const leadButton = "Lead";
 export const notLeadButton = "Not Lead";
 import { Context, InlineKeyboard } from "grammy";
-import { TempContactStore } from "../temp.contact.store";
+import { StoreContext } from "../contact.state.machine";
 
 const leadManu = "<b>Is Lead?</b>\n\nPlease select is contact lead or not";
 
@@ -11,12 +11,12 @@ const leadMeanuMarkup = new InlineKeyboard()
 
 export const toWaitingLeadAction = async (
   ctx: Context,
-  store: TempContactStore
+  storeCtx: StoreContext
 ) => {
   const company = ctx.message?.text as string;
-  const contact = await store.getContact();
+  const contact = await storeCtx.tmpContactStore.getContact();
   contact.companyName = company;
-  await store.updateContact(contact);
+  await storeCtx.tmpContactStore.updateContact(contact);
   await ctx.reply(leadManu, {
     parse_mode: "HTML",
     reply_markup: leadMeanuMarkup,

@@ -1,15 +1,15 @@
 import { Context } from "grammy";
-import { TempContactStore } from "../temp.contact.store";
 import { ContactPriority } from "../temp.contact.store";
+import { StoreContext } from "../contact.state.machine";
 
 export const fromPriorityAction = async (
   ctx: Context,
-  store: TempContactStore
+  storeCtx: StoreContext
 ) => {
   const priority = mapPriority(ctx.match as string);
-  const contact = await store.getContact();
+  const contact = await storeCtx.tmpContactStore.getContact();
   contact.priority = priority;
-  await store.updateContact(contact);
+  await storeCtx.tmpContactStore.updateContact(contact);
   await ctx.reply(
     `You can add additional pictures, voice recordings or messages. Write /s to save contact.`
   );

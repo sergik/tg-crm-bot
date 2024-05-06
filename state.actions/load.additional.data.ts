@@ -1,11 +1,11 @@
 import { Context } from "grammy";
-import { TempContactStore } from "../temp.contact.store";
+import { StoreContext } from "../contact.state.machine";
 
 export const loadAdditionalData = async (
   ctx: Context,
-  store: TempContactStore
+  storeCtx: StoreContext
 ) => {
-  const contact = await store.getContact();
+  const contact = await storeCtx.tmpContactStore.getContact();
   if (ctx.message?.photo) {
     contact.photoIds = [
       ...contact.photoIds,
@@ -16,4 +16,5 @@ export const loadAdditionalData = async (
   } else if (ctx.message?.voice) {
     contact.voiceIds = [...contact.voiceIds, ctx.message?.voice.file_id];
   }
+  await storeCtx.tmpContactStore.updateContact(contact);
 };

@@ -1,6 +1,6 @@
 import { Context, InlineKeyboard } from "grammy";
-import { TempContactStore } from "../temp.contact.store";
 import { leadButton } from "./to.is.lead";
+import { StoreContext } from "../contact.state.machine";
 
 export const buttons = ["High", "Mid", "Low", "Other"];
 
@@ -13,12 +13,12 @@ for (const btn of buttons) {
 
 export const toPriorityAction = async (
   ctx: Context,
-  store: TempContactStore
+  storeCtx: StoreContext
 ) => {
   const isLead = ctx.match === leadButton;
-  const contact = await store.getContact();
+  const contact = await storeCtx.tmpContactStore.getContact();
   contact.isLead = isLead;
-  await store.updateContact(contact);
+  await storeCtx.tmpContactStore.updateContact(contact);
   await ctx.reply(`Contact is ${isLead ? "lead" : "not lead"}`);
   await ctx.reply(priorityMenu, {
     parse_mode: "HTML",

@@ -5,6 +5,7 @@ import { toWaitingLeadAction } from "./state.actions/to.is.lead";
 import { toPriorityAction } from "./state.actions/to.priority";
 import { fromPriorityAction } from "./state.actions/from.priority";
 import { loadAdditionalData } from "./state.actions/load.additional.data";
+import { HubspotStore } from "./crm/hubspot/hubspot.store";
 
 type ContactMachineStates =
   | "idle"
@@ -17,11 +18,15 @@ type ContactMachineStates =
 
 export type ContactMachineActions = "start" | "input" | "submit" | "cancel";
 
+export type StoreContext = {
+  tmpContactStore: TempContactStore;
+  hubSpotStore: HubspotStore;
+};
 type ContactStateMachineTransitions = {
   [state in ContactMachineStates]: {
     [action in ContactMachineActions]?: {
       state: ContactMachineStates;
-      action?: (ctx: Context, store: TempContactStore) => Promise<void>;
+      action?: (ctx: Context, storeCtx: StoreContext) => Promise<void>;
     };
   };
 };
@@ -46,11 +51,11 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
   waiting_contact_name: {
     input: {
       state: "waiting_company",
-      action: async (ctx, store) => {
+      action: async (ctx, storeCtx) => {
         const contactName = ctx.message?.text as string;
-        const contact = await store.getContact();
+        const contact = await storeCtx.tmpContactStore.getContact();
         contact.contactName = contactName;
-        await store.updateContact(contact);
+        await storeCtx.tmpContactStore.updateContact(contact);
         await ctx.reply(`Please enter the company name`);
       },
     },
@@ -77,9 +82,9 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
   waiting_for_other_input: {
     submit: {
       state: "idle",
-      action: async (ctx, store) => {
-        const contact = await store.getContact();
-        await ctx.reply(`Saving new contact: ${JSON.stringify(contact)}`);
+      action: async (ctx, storeCtx) => {
+        const contact = await storeCtx.tmpContactStore.getContact();
+        await storeCtx.hubSpotStore.createContact(contact);
       },
     },
     input: {
@@ -96,7 +101,10 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
 
 export class ContactStateMachine {
   private currentState: ContactMachineStates = "idle";
-  constructor(private store: TempContactStore) {}
+  constructor(
+    private store: TempContactStore,
+    private hubspotStore: HubspotStore
+  ) {}
   public getCurrentState(): ContactMachineStates {
     return this.currentState;
   }
@@ -113,7 +121,10 @@ export class ContactStateMachine {
       );
     }
     if (nextTransition.action) {
-      await nextTransition.action(args.ctx, this.store);
+      await nextTransition.action(args.ctx, {
+        tmpContactStore: this.store,
+        hubSpotStore: this.hubspotStore,
+      });
     }
     this.currentState = nextTransition.state;
   }
