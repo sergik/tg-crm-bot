@@ -6,6 +6,9 @@ import { toPriorityAction } from "./state.actions/to.priority";
 import { fromPriorityAction } from "./state.actions/from.priority";
 import { loadAdditionalData } from "./state.actions/load.additional.data";
 import { HubspotStore } from "./crm/hubspot/hubspot.store";
+import { config } from "./config";
+import fs from "fs";
+import http from "http";
 
 type ContactMachineStates =
   | "idle"
@@ -84,7 +87,12 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
       state: "idle",
       action: async (ctx, storeCtx) => {
         const contact = await storeCtx.tmpContactStore.getContact();
-        await storeCtx.hubSpotStore.createContact(contact);
+        for (const file of contact.photoIds) {
+          const res = await ctx.api.getFile(file);
+          const downloadURL = `https://api.telegram.org/file/bot${config.BOT_TOKEN}/${res.file_path}`;
+          const fsFile = fs.createWriteStream("file.jpg");
+        }
+        await storeCtx.hubSpotStore.createContact(contact, async () => {});
       },
     },
     input: {

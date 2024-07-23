@@ -5,7 +5,8 @@
   "main": "index.ts",
   "scripts": {
     "test": "test",
-    "start": "ts-node ./index.ts"
+    "start": "ts-node ./index.ts",
+    "sandbox": "ts-node ./sandbox.ts"
   },
   "author": "volkovich",
   "license": "ISC",

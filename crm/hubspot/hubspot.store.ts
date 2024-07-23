@@ -6,7 +6,11 @@ export class HubspotStore {
     this.client = new Client({ accessToken: this.token });
   }
 
-  public async createContact(contact: Contact): Promise<void> {
+  public async createContact(
+    contact: Contact,
+    downloadFile: (fileId: string) => Promise<any>
+  ): Promise<void> {
+    this.client.files.filesApi.upload();
     const company = await this.getOrCreateCompany(
       contact.companyName as string
     );
