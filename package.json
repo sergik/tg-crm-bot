@@ -11,7 +11,9 @@
   "author": "volkovich",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/local-auth": "^2.1.0",
     "@hubspot/api-client": "^11.1.0",
+    "googleapis": "^105.0.0",
     "grammy": "^1.22.4",
     "ts-dotenv": "^0.9.1"
   },

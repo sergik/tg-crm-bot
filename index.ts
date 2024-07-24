@@ -4,13 +4,17 @@ import { TempContactStore } from "./temp.contact.store";
 import { config } from "./config";
 import { leadButton, notLeadButton } from "./state.actions/to.is.lead";
 import { buttons as priorityButtons } from "./state.actions/to.priority";
-import { HubspotStore } from "./crm/hubspot/hubspot.store";
+import { GoogleSheetsStore } from "./crm/hubspot/google.sheets.store";
+import path from "path";
 
 const bot = new Bot(config.BOT_TOKEN);
-const hubSpotClient = new HubspotStore(config.HUBSPOT_TOKEN);
+const store = new GoogleSheetsStore(
+  path.join(__dirname, config.GOOGLE_API_KEY_FILE_PATH),
+  config.SPREADSHEET_ID
+);
 
 const tmpContactStore = new TempContactStore();
-const stateMachine = new ContactStateMachine(tmpContactStore, hubSpotClient);
+const stateMachine = new ContactStateMachine(tmpContactStore, store);
 
 bot.command("a", async (ctx) => {
   await dispatchWithErrorHandling(

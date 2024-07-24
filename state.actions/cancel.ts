@@ -1,11 +1,11 @@
 import { Context } from "grammy";
 import { TempContactStore } from "../temp.contact.store";
-import { HubspotStore } from "../crm/hubspot/hubspot.store";
+import { GoogleSheetsStore } from "../crm/hubspot/google.sheets.store";
 export const cancelAction = async (
   ctx: Context,
   storeCtx: {
     tmpContactStore: TempContactStore;
-    hubSpotStore: HubspotStore;
+    store: GoogleSheetsStore;
   }
 ) => {
   await ctx.reply(

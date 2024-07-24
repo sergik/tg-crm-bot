@@ -5,10 +5,9 @@ import { toWaitingLeadAction } from "./state.actions/to.is.lead";
 import { toPriorityAction } from "./state.actions/to.priority";
 import { fromPriorityAction } from "./state.actions/from.priority";
 import { loadAdditionalData } from "./state.actions/load.additional.data";
-import { HubspotStore } from "./crm/hubspot/hubspot.store";
+import { GoogleSheetsStore } from "./crm/hubspot/google.sheets.store";
 import { config } from "./config";
 import fs from "fs";
-import http from "http";
 
 type ContactMachineStates =
   | "idle"
@@ -23,7 +22,7 @@ export type ContactMachineActions = "start" | "input" | "submit" | "cancel";
 
 export type StoreContext = {
   tmpContactStore: TempContactStore;
-  hubSpotStore: HubspotStore;
+  store: GoogleSheetsStore;
 };
 type ContactStateMachineTransitions = {
   [state in ContactMachineStates]: {
@@ -92,7 +91,7 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
           const downloadURL = `https://api.telegram.org/file/bot${config.BOT_TOKEN}/${res.file_path}`;
           const fsFile = fs.createWriteStream("file.jpg");
         }
-        await storeCtx.hubSpotStore.createContact(contact, async () => {});
+        await storeCtx.store.createContact(contact, async () => {});
       },
     },
     input: {
@@ -110,8 +109,8 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
 export class ContactStateMachine {
   private currentState: ContactMachineStates = "idle";
   constructor(
-    private store: TempContactStore,
-    private hubspotStore: HubspotStore
+    private tempStore: TempContactStore,
+    private store: GoogleSheetsStore
   ) {}
   public getCurrentState(): ContactMachineStates {
     return this.currentState;
@@ -130,8 +129,8 @@ export class ContactStateMachine {
     }
     if (nextTransition.action) {
       await nextTransition.action(args.ctx, {
-        tmpContactStore: this.store,
-        hubSpotStore: this.hubspotStore,
+        tmpContactStore: this.tempStore,
+        store: this.store,
       });
     }
     this.currentState = nextTransition.state;
