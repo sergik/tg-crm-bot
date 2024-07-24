@@ -86,11 +86,6 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
       state: "idle",
       action: async (ctx, storeCtx) => {
         const contact = await storeCtx.tmpContactStore.getContact();
-        for (const file of contact.photoIds) {
-          const res = await ctx.api.getFile(file);
-          const downloadURL = `https://api.telegram.org/file/bot${config.BOT_TOKEN}/${res.file_path}`;
-          const fsFile = fs.createWriteStream("file.jpg");
-        }
         await storeCtx.store.createContact(contact, async () => {});
       },
     },

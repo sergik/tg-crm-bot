@@ -3,7 +3,7 @@ export type Contact = {
   companyName: string | null;
   isLead: boolean | null;
   priority: ContactPriority | null;
-  photoIds: Array<string>;
+  files: Array<string>;
   additionalNotes: Array<string>;
   voiceIds: Array<string>;
 };
@@ -22,7 +22,7 @@ export class TempContactStore {
       companyName: null,
       isLead: null,
       priority: null,
-      photoIds: [],
+      files: [],
       additionalNotes: [],
       voiceIds: [],
     };
