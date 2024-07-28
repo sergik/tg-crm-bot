@@ -1,30 +1,47 @@
 import { Context } from "grammy";
-import { TempContactStore } from "./temp.contact.store";
+import { Contact, TempContactStore } from "./temp.contact.store";
 import { cancelAction } from "./state.actions/cancel";
 import { toWaitingLeadAction } from "./state.actions/to.is.lead";
 import { toPriorityAction } from "./state.actions/to.priority";
 import { fromPriorityAction } from "./state.actions/from.priority";
 import { loadAdditionalData } from "./state.actions/load.additional.data";
 import { GoogleSheetsStore } from "./crm/hubspot/google.sheets.store";
-import { getMainMenuMarkup } from "./telegram/utils";
+import {
+  getMainMenuMarkup,
+  showContactInfoMenu,
+  showSubmitMenu,
+} from "./telegram/utils";
 
 type ContactMachineStates =
   | "idle"
   | "waiting_contact_name"
   | "waiting_company"
   | "waiting_position"
+  | "waiting_contact_information"
+  | "waiting_email"
+  | "waiting_phone_number"
+  | "waiting_telegram"
   | "waiting_is_lead"
   | "waiting_priority"
-  | "waiting_for_other_input"
-  | "waiting_contact_confirmation"
-  | "waiting_auth_input";
+  | "waiting_files"
+  | "waiting_additional_notes"
+  | "waiting_voice_messages"
+  | "waiting_auth_input"
+  | "waiting_for_other_input";
 
 export type ContactMachineActions =
   | "start"
+  | "enter_phone"
+  | "enter_telegram"
+  | "enter_email"
+  | "next"
   | "input"
   | "submit"
   | "cancel"
-  | "authorize";
+  | "upload_files"
+  | "upload_voice_messages"
+  | "authorize"
+  | "add_additional_notes";
 
 export type StateAction = (
   ctx: Context,
@@ -82,10 +99,9 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
     input: {
       state: "waiting_company",
       action: async (ctx, storeCtx) => {
-        const contactName = ctx.message?.text as string;
-        const contact = await storeCtx.tmpContactStore.getContact();
-        contact.contactName = contactName;
-        await storeCtx.tmpContactStore.updateContact(contact);
+        await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
+          contact.contactName = val;
+        });
         await ctx.reply(`Please enter the company name`);
       },
     },
@@ -95,10 +111,9 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
     input: {
       state: "waiting_position",
       action: async (ctx, storeCtx) => {
-        const company = ctx.message?.text as string;
-        const contact = await storeCtx.tmpContactStore.getContact();
-        contact.companyName = company;
-        await storeCtx.tmpContactStore.updateContact(contact);
+        await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
+          contact.companyName = val;
+        });
         await ctx.reply(`Please enter contact position`);
       },
     },
@@ -117,8 +132,71 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
   },
   waiting_priority: {
     input: {
-      state: "waiting_for_other_input",
+      state: "waiting_contact_information",
       action: fromPriorityAction,
+    },
+    cancel: cancelActionDef,
+  },
+  waiting_contact_information: {
+    next: {
+      state: "waiting_for_other_input",
+      action: async (ctx, _) => {
+        await showSubmitMenu(ctx);
+      },
+    },
+    enter_email: {
+      state: "waiting_email",
+      action: async (ctx, _) => {
+        await ctx.reply(`Enter contact email`);
+      },
+    },
+    enter_phone: {
+      state: "waiting_phone_number",
+      action: async (ctx, _) => {
+        await ctx.reply(`Enter contact phone number`);
+      },
+    },
+    enter_telegram: {
+      state: "waiting_telegram",
+      action: async (ctx, _) => {
+        await ctx.reply(`Enter contact telegram`);
+      },
+    },
+    cancel: cancelActionDef,
+  },
+  waiting_email: {
+    input: {
+      state: "waiting_contact_information",
+      action: async (ctx, storeCtx) => {
+        await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
+          contact.email = val;
+        });
+        await showContactInfoMenu(ctx);
+      },
+    },
+    cancel: cancelActionDef,
+  },
+  waiting_phone_number: {
+    input: {
+      state: "waiting_contact_information",
+      action: async (ctx, storeCtx) => {
+        await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
+          contact.phoneNumber = val;
+        });
+        await showContactInfoMenu(ctx);
+      },
+    },
+    cancel: cancelActionDef,
+  },
+  waiting_telegram: {
+    input: {
+      state: "waiting_contact_information",
+      action: async (ctx, storeCtx) => {
+        await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
+          contact.telegram = val;
+        });
+        await showContactInfoMenu(ctx);
+      },
     },
     cancel: cancelActionDef,
   },
@@ -129,20 +207,73 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
         const contact = await storeCtx.tmpContactStore.getContact();
         await storeCtx.store.createContact(contact);
         await ctx.reply("Contact saved.", {
-          reply_markup: getMainMenuMarkup(ctx),
+          reply_markup: getMainMenuMarkup(),
         });
       },
     },
-    input: {
-      state: "waiting_for_other_input",
-      action: loadAdditionalData,
+    upload_files: {
+      state: "waiting_files",
+      action: async (ctx, _) => {
+        await ctx.reply(`Upload files and/or photos`);
+      },
+    },
+    upload_voice_messages: {
+      state: "waiting_voice_messages",
+      action: async (ctx, _) => {
+        await ctx.reply(`Upload additinal voice messages`);
+      },
+    },
+    add_additional_notes: {
+      state: "waiting_additional_notes",
+      action: async (ctx, _) => {
+        await ctx.reply(`Enter additional notes related to contact`);
+      },
     },
     cancel: cancelActionDef,
   },
-  waiting_contact_confirmation: {
+  waiting_additional_notes: {
     cancel: cancelActionDef,
-    submit: { state: "idle" },
+    input: {
+      state: "waiting_for_other_input",
+      action: async (ctx, storeCtx) => {
+        await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
+          contact.additionalNotes = [...contact.additionalNotes, val];
+        });
+        await showSubmitMenu(ctx);
+      },
+    },
   },
+  waiting_files: {
+    cancel: cancelActionDef,
+    input: {
+      state: "waiting_for_other_input",
+      action: async (ctx, storeCtx) => {
+        await loadAdditionalData(ctx, storeCtx);
+        await showSubmitMenu(ctx);
+      },
+    },
+  },
+  waiting_voice_messages: {
+    cancel: cancelActionDef,
+    input: {
+      state: "waiting_for_other_input",
+      action: async (ctx, storeCtx) => {
+        await loadAdditionalData(ctx, storeCtx);
+        await showSubmitMenu(ctx);
+      },
+    },
+  },
+};
+
+const updateFieldInTmpStore = async (
+  ctx: Context,
+  storeCtx: StoreContext,
+  fieldSetter: (contact: Contact, val: string) => void
+) => {
+  const contact = await storeCtx.tmpContactStore.getContact();
+  const val = ctx.message?.text as string;
+  fieldSetter(contact, val);
+  await storeCtx.tmpContactStore.updateContact(contact);
 };
 
 export class ContactStateMachine {

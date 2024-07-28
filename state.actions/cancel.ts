@@ -6,7 +6,7 @@ export const cancelAction = async (ctx: Context, storeCtx: StoreContext) => {
   await ctx.reply(
     "Previous contact creaction canceled. Please choose an option:",
     {
-      reply_markup: getMainMenuMarkup(ctx),
+      reply_markup: getMainMenuMarkup(),
     }
   );
 };

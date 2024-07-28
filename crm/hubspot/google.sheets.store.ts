@@ -131,6 +131,10 @@ export class GoogleSheetsStore {
       contact.position ?? "",
       contact.isLead === true ? "lead" : "not lead",
       contact.priority ?? "",
+      contact.telegram ?? "",
+      contact.phoneNumber ?? "",
+      contact.email ?? "",
+      contact.additionalNotes.join(",\n"),
       fileLinks.join(",\n"),
     ];
   }

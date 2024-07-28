@@ -2,6 +2,10 @@ export type Contact = {
   contactName: string | null;
   companyName: string | null;
   isLead: boolean | null;
+  email: string | null;
+  notes: string | null;
+  phoneNumber: string | null;
+  telegram: string | null;
   priority: ContactPriority | null;
   position: string | null;
   files: Array<string>;
@@ -22,8 +26,12 @@ export class TempContactStore {
       contactName: null,
       companyName: null,
       position: null,
+      email: null,
+      phoneNumber: null,
+      telegram: null,
       isLead: null,
       priority: null,
+      notes: null,
       files: [],
       additionalNotes: [],
       voiceIds: [],

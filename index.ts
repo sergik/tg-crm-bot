@@ -46,7 +46,7 @@ bot.command("s", async (ctx) => {
 
 bot.command("start", async (ctx) => {
   await ctx.reply("Welcome to the crm bot! Please choose an option:", {
-    reply_markup: getMainMenuMarkup(ctx),
+    reply_markup: getMainMenuMarkup(),
   });
 });
 
