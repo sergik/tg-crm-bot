@@ -3,12 +3,16 @@ interface IConfig {
   BOT_TOKEN: string;
   HUBSPOT_TOKEN: string;
   SPREADSHEET_ID: string;
-  GOOGLE_API_KEY_FILE_PATH: string;
+  AUTH_CLIENT_ID: string;
+  AUTH_CLIENT_SECRET: string;
+  AUTH_REDIRECT_URI: string;
 }
 
 export const config: IConfig = load({
   BOT_TOKEN: String,
   HUBSPOT_TOKEN: String,
   SPREADSHEET_ID: String,
-  GOOGLE_API_KEY_FILE_PATH: String,
+  AUTH_CLIENT_ID: String,
+  AUTH_CLIENT_SECRET: String,
+  AUTH_REDIRECT_URI: String,
 });

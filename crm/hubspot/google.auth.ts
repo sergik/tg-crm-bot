@@ -34,14 +34,11 @@ export function authorize(): Promise<OAuth2Client> {
 }
 
 function getOAuthClient(): OAuth2Client {
-  const credentials = JSON.parse(
-    fs.readFileSync(
-      path.join(process.cwd(), config.GOOGLE_API_KEY_FILE_PATH),
-      "utf8"
-    )
+  return new google.auth.OAuth2(
+    config.AUTH_CLIENT_ID,
+    config.AUTH_CLIENT_SECRET,
+    config.AUTH_REDIRECT_URI
   );
-  const { client_secret, client_id, redirect_uris } = credentials.installed;
-  return new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 }
 
 export function handleError(err: any) {
