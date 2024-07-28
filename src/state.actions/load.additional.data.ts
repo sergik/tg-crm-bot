@@ -30,7 +30,11 @@ async function downloadImage(ctx: Context, fileId: string): Promise<string> {
   const fileExtension = path.extname(fileInfo.file_path ?? "");
   const response = await axios.get(url, { responseType: "stream" });
   const fileName = generateRandomFileName(fileExtension);
-  const filePath = path.join(process.cwd(), "images", fileName);
+  const imagesDir = path.join(process.cwd(), "images");
+  if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir);
+  }
+  const filePath = path.join(imagesDir, fileName);
   const writer = fs.createWriteStream(filePath);
   response.data.pipe(writer);
   return new Promise((resolve, reject) => {
