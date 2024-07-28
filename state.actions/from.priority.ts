@@ -6,7 +6,7 @@ export const fromPriorityAction = async (
   ctx: Context,
   storeCtx: StoreContext
 ) => {
-  const priority = mapPriority(ctx.match as string);
+  const priority = mapPriority((ctx as any).callbackQuery.data);
   const contact = await storeCtx.tmpContactStore.getContact();
   contact.priority = priority;
   await storeCtx.tmpContactStore.updateContact(contact);

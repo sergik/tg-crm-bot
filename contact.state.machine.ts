@@ -6,19 +6,30 @@ import { toPriorityAction } from "./state.actions/to.priority";
 import { fromPriorityAction } from "./state.actions/from.priority";
 import { loadAdditionalData } from "./state.actions/load.additional.data";
 import { GoogleSheetsStore } from "./crm/hubspot/google.sheets.store";
-import { config } from "./config";
-import fs from "fs";
+import { getMainMenuMarkup } from "./telegram/utils";
 
 type ContactMachineStates =
   | "idle"
   | "waiting_contact_name"
   | "waiting_company"
+  | "waiting_position"
   | "waiting_is_lead"
   | "waiting_priority"
   | "waiting_for_other_input"
-  | "waiting_contact_confirmation";
+  | "waiting_contact_confirmation"
+  | "waiting_auth_input";
 
-export type ContactMachineActions = "start" | "input" | "submit" | "cancel";
+export type ContactMachineActions =
+  | "start"
+  | "input"
+  | "submit"
+  | "cancel"
+  | "authorize";
+
+export type StateAction = (
+  ctx: Context,
+  storeCtx: StoreContext
+) => Promise<void>;
 
 export type StoreContext = {
   tmpContactStore: TempContactStore;
@@ -28,7 +39,7 @@ type ContactStateMachineTransitions = {
   [state in ContactMachineStates]: {
     [action in ContactMachineActions]?: {
       state: ContactMachineStates;
-      action?: (ctx: Context, storeCtx: StoreContext) => Promise<void>;
+      action?: StateAction;
     };
   };
 };
@@ -42,13 +53,30 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
   idle: {
     start: {
       state: "waiting_contact_name",
-      action: async (ctx, _store) => {
+      action: async (ctx, store) => {
+        store.tmpContactStore.resetContact();
         await ctx.reply(
           `Starting new contact creation. Please enter contact name`
         );
       },
     },
     cancel: cancelActionDef,
+    authorize: {
+      state: "waiting_auth_input",
+      action: async (ctx, storeCtx) => {
+        await ctx.reply(storeCtx.store.getAuthMessage());
+      },
+    },
+  },
+  waiting_auth_input: {
+    cancel: cancelActionDef,
+    input: {
+      state: "idle",
+      action: async (ctx, storeCtx) => {
+        const input = ctx.message?.text as string;
+        storeCtx.store.applyAuthResponse(input);
+      },
+    },
   },
   waiting_contact_name: {
     input: {
@@ -64,6 +92,19 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
     cancel: cancelActionDef,
   },
   waiting_company: {
+    input: {
+      state: "waiting_position",
+      action: async (ctx, storeCtx) => {
+        const company = ctx.message?.text as string;
+        const contact = await storeCtx.tmpContactStore.getContact();
+        contact.companyName = company;
+        await storeCtx.tmpContactStore.updateContact(contact);
+        await ctx.reply(`Please enter contact position`);
+      },
+    },
+    cancel: cancelActionDef,
+  },
+  waiting_position: {
     input: {
       state: "waiting_is_lead",
       action: toWaitingLeadAction,
@@ -86,7 +127,10 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
       state: "idle",
       action: async (ctx, storeCtx) => {
         const contact = await storeCtx.tmpContactStore.getContact();
-        await storeCtx.store.createContact(contact, async () => {});
+        await storeCtx.store.createContact(contact);
+        await ctx.reply("Contact saved.", {
+          reply_markup: getMainMenuMarkup(ctx),
+        });
       },
     },
     input: {

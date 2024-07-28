@@ -13,9 +13,9 @@ export const toWaitingLeadAction = async (
   ctx: Context,
   storeCtx: StoreContext
 ) => {
-  const company = ctx.message?.text as string;
+  const position = ctx.message?.text as string;
   const contact = await storeCtx.tmpContactStore.getContact();
-  contact.companyName = company;
+  contact.position = position;
   await storeCtx.tmpContactStore.updateContact(contact);
   await ctx.reply(leadManu, {
     parse_mode: "HTML",

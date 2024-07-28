@@ -1,14 +1,12 @@
 import { Context } from "grammy";
-import { TempContactStore } from "../temp.contact.store";
-import { GoogleSheetsStore } from "../crm/hubspot/google.sheets.store";
-export const cancelAction = async (
-  ctx: Context,
-  storeCtx: {
-    tmpContactStore: TempContactStore;
-    store: GoogleSheetsStore;
-  }
-) => {
+import { StoreContext } from "../contact.state.machine";
+import { getMainMenuMarkup } from "../telegram/utils";
+export const cancelAction = async (ctx: Context, storeCtx: StoreContext) => {
+  storeCtx.tmpContactStore.resetContact();
   await ctx.reply(
-    `Previous contact creaction canceled. You can start new contact creation from scratch with /a`
+    "Previous contact creaction canceled. Please choose an option:",
+    {
+      reply_markup: getMainMenuMarkup(ctx),
+    }
   );
 };

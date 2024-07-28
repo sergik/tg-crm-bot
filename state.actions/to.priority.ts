@@ -15,7 +15,7 @@ export const toPriorityAction = async (
   ctx: Context,
   storeCtx: StoreContext
 ) => {
-  const isLead = ctx.match === leadButton;
+  const isLead = (ctx as any).callbackQuery.data === leadButton;
   const contact = await storeCtx.tmpContactStore.getContact();
   contact.isLead = isLead;
   await storeCtx.tmpContactStore.updateContact(contact);

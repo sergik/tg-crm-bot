@@ -27,8 +27,9 @@ async function downloadImage(ctx: Context, fileId: string): Promise<string> {
   const fileUrl = `https://api.telegram.org/file/bot${config.BOT_TOKEN}/`;
   const fileInfo = await ctx.api.getFile(fileId);
   const url = `${fileUrl}${fileInfo.file_path}`;
+  const fileExtension = path.extname(fileInfo.file_path ?? "");
   const response = await axios.get(url, { responseType: "stream" });
-  const fileName = generateRandomFileName();
+  const fileName = generateRandomFileName(fileExtension);
   const filePath = path.join(process.cwd(), "images", fileName);
   const writer = fs.createWriteStream(filePath);
   response.data.pipe(writer);
@@ -41,6 +42,6 @@ async function downloadImage(ctx: Context, fileId: string): Promise<string> {
 function generateRandomFileName(extension = "") {
   const randomString = crypto.randomBytes(16).toString("hex");
   const timestamp = Date.now();
-  const randomFileName = `${timestamp}-${randomString}${extension ? `.${extension}` : ""}`;
+  const randomFileName = `${timestamp}-${randomString}${extension ? `${extension}` : ""}`;
   return randomFileName;
 }

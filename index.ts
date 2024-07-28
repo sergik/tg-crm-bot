@@ -5,22 +5,29 @@ import { config } from "./config";
 import { leadButton, notLeadButton } from "./state.actions/to.is.lead";
 import { buttons as priorityButtons } from "./state.actions/to.priority";
 import { GoogleSheetsStore } from "./crm/hubspot/google.sheets.store";
-import path from "path";
+import { checkTokenExists } from "./crm/hubspot/google.auth";
+import { getActionFromInput, getMainMenuMarkup } from "./telegram/utils";
 
 const bot = new Bot(config.BOT_TOKEN);
-const store = new GoogleSheetsStore(
-  path.join(__dirname, config.GOOGLE_API_KEY_FILE_PATH),
-  config.SPREADSHEET_ID
-);
+const store = new GoogleSheetsStore(config.SPREADSHEET_ID);
 
 const tmpContactStore = new TempContactStore();
 const stateMachine = new ContactStateMachine(tmpContactStore, store);
 
 bot.command("a", async (ctx) => {
-  await dispatchWithErrorHandling(
-    ctx,
-    async () => await stateMachine.dispatch("start", { ctx })
-  );
+  await dispatchWithErrorHandling(ctx, async () => {
+    if (checkTokenExists()) {
+      await stateMachine.dispatch("start", { ctx });
+    } else {
+      await stateMachine.dispatch("authorize", { ctx });
+    }
+  });
+});
+
+bot.command("auth", async (ctx) => {
+  await dispatchWithErrorHandling(ctx, async () => {
+    await stateMachine.dispatch("authorize", { ctx });
+  });
 });
 
 bot.command("c", async (ctx) => {
@@ -34,6 +41,21 @@ bot.command("s", async (ctx) => {
   await dispatchWithErrorHandling(
     ctx,
     async () => await stateMachine.dispatch("submit", { ctx })
+  );
+});
+
+bot.command("start", async (ctx) => {
+  await ctx.reply("Welcome to the crm bot! Please choose an option:", {
+    reply_markup: getMainMenuMarkup(ctx),
+  });
+});
+
+bot.on("callback_query:data", async (ctx) => {
+  const callbackData = ctx.callbackQuery.data;
+  const action = getActionFromInput(callbackData);
+  await dispatchWithErrorHandling(
+    ctx,
+    async () => await stateMachine.dispatch(action, { ctx })
   );
 });
 
@@ -55,15 +77,6 @@ bot.command("pnh", async (ctx) => {
   const author = await ctx.getAuthor();
   await ctx.reply(`${author.user.first_name}, idi ty nahui!`);
 });
-
-const leadBtns = [leadButton, notLeadButton];
-const btns = [...leadBtns, ...priorityButtons];
-
-for (const btn of btns) {
-  bot.callbackQuery(btn, async (ctx) => {
-    await stateMachine.dispatch("input", { ctx });
-  });
-}
 
 bot.start();
 
