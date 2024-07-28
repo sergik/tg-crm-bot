@@ -50,7 +50,10 @@ bot.command("start", async (ctx) => {
 
 bot.on("callback_query:data", async (ctx) => {
   const callbackData = ctx.callbackQuery.data;
-  const action = getActionFromInput(callbackData);
+  let action = getActionFromInput(callbackData);
+  if (action === "start" && !checkTokenExists()) {
+    action = "authorize";
+  }
   await dispatchWithErrorHandling(
     ctx,
     async () => await stateMachine.dispatch(action, { ctx })
