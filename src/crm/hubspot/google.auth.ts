@@ -1,6 +1,5 @@
 import { google } from "googleapis";
 import fs from "fs";
-import path from "path";
 import * as readline from "readline";
 import { OAuth2Client } from "google-auth-library";
 import { config } from "../../config";

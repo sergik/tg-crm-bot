@@ -4,9 +4,10 @@
   "description": "Bot to manage crm contacts from telegram",
   "main": "index.ts",
   "scripts": {
+    "build": "tsc",
     "test": "test",
-    "start": "ts-node ./index.ts",
-    "sandbox": "ts-node ./sandbox.ts"
+    "start": "ts-node ./src/index.ts",
+    "sandbox": "ts-node ./src/sandbox.ts"
   },
   "author": "volkovich",
   "license": "ISC",
