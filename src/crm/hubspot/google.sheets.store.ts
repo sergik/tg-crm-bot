@@ -12,7 +12,11 @@ import fs from "fs";
 const NAME_COLUMN_ID = 1;
 const COMPANY_COLUMN_ID = 2;
 const POSITION_COLUMN_ID = 3;
-const PRIOTIY_COLUMN_ID = 4;
+const LEAD_COLUMN_ID = 4;
+const PRIORITY_COLUMN_ID = 5;
+const TELEGRAM_COLUMN_ID = 6;
+const PHONE_COLUMN_ID = 7;
+const EMAIL_COLUMN_ID = 8;
 
 const SUBFOLDER_NAME = "CRM Bot";
 
@@ -105,6 +109,32 @@ export class GoogleSheetsStore {
     }
 
     return sheet.properties.title;
+  }
+
+  public async searchByName(name: string): Promise<Array<Contact>> {
+    const sheets = await this.getSheetsClient();
+    const sheetName = await this.getFirstSheetName(sheets);
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
+      range: sheetName,
+    });
+    const rows = response.data.values;
+    if (!rows) {
+      return [];
+    }
+    return rows
+      .filter((r) =>
+        r[NAME_COLUMN_ID - 1].toLowerCase().includes(name.toLowerCase())
+      )
+      .map((r) => {
+        return {
+          contactName: r[NAME_COLUMN_ID - 1],
+          companyName: r[COMPANY_COLUMN_ID - 1],
+          email: r[EMAIL_COLUMN_ID - 1],
+          phoneNumber: r[PHONE_COLUMN_ID - 1],
+          telegram: r[TELEGRAM_COLUMN_ID],
+        } as Contact;
+      });
   }
 
   private async getFirstEmptyRowNumber(

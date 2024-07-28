@@ -10,7 +10,6 @@ export type Contact = {
   position: string | null;
   files: Array<string>;
   additionalNotes: Array<string>;
-  voiceIds: Array<string>;
 };
 
 export type ContactPriority = "high" | "medium" | "low" | "other";
@@ -34,7 +33,6 @@ export class TempContactStore {
       notes: null,
       files: [],
       additionalNotes: [],
-      voiceIds: [],
     };
   }
 

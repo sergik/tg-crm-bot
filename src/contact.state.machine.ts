@@ -9,6 +9,7 @@ import { GoogleSheetsStore } from "./crm/hubspot/google.sheets.store";
 import {
   getMainMenuMarkup,
   showContactInfoMenu,
+  showSearchContacntMenu,
   showSubmitMenu,
 } from "./telegram/utils";
 
@@ -27,7 +28,9 @@ type ContactMachineStates =
   | "waiting_additional_notes"
   | "waiting_voice_messages"
   | "waiting_auth_input"
-  | "waiting_for_other_input";
+  | "waiting_for_other_input"
+  | "waiting_search_type"
+  | "waiting_search_by_name";
 
 export type ContactMachineActions =
   | "start"
@@ -41,7 +44,10 @@ export type ContactMachineActions =
   | "upload_files"
   | "upload_voice_messages"
   | "authorize"
-  | "add_additional_notes";
+  | "search_contact"
+  | "add_additional_notes"
+  | "search_by_name"
+  | "search_by_company";
 
 export type StateAction = (
   ctx: Context,
@@ -82,6 +88,45 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
       state: "waiting_auth_input",
       action: async (ctx, storeCtx) => {
         await ctx.reply(storeCtx.store.getAuthMessage());
+      },
+    },
+    search_contact: {
+      state: "waiting_search_type",
+      action: async (ctx, _) => {
+        await showSearchContacntMenu(ctx);
+      },
+    },
+  },
+  waiting_search_type: {
+    cancel: {
+      state: "idle",
+      action: async (ctx, _) => {
+        await ctx.reply("Search canceled", {
+          reply_markup: getMainMenuMarkup(),
+        });
+      },
+    },
+    search_by_name: {
+      state: "waiting_search_by_name",
+      action: async (ctx, _) => {
+        await ctx.reply("Enter contact name");
+      },
+    },
+  },
+  waiting_search_by_name: {
+    input: {
+      state: "idle",
+      action: async (ctx, storeCtx) => {
+        const input = ctx.message?.text as string;
+        const res = storeCtx.store.searchByName(input);
+        const printContact = (contact: Contact) =>
+          `Name: ${contact.contactName}\nCompany: ${contact.companyName}\nEmail: ${contact.email ?? ""}\nTelegram: ${contact.telegram ?? ""}\n`;
+        await ctx.reply(
+          `Found contacts:\n${(await res).map((c) => printContact(c)).join("\n")}`,
+          {
+            reply_markup: getMainMenuMarkup(),
+          }
+        );
       },
     },
   },

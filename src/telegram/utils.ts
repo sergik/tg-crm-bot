@@ -8,10 +8,12 @@ export const ADD_TELEGRAM = "add_telegram";
 export const ADD_EMAIL = "add_email";
 export const MOVE_NEXT = "move_next";
 export const SAVE_CONTACT = "save_contact";
-export const CANCEL_CONTACT_CREATION = "cancel_contact";
+export const CANCEL = "cancel";
 export const UPLOAD_FILES = "upload_files";
 export const UPLOAD_VOICE_MESSAGES = "upload_voice_messages";
 export const ADD_ADDITIONAL_NOTES = "add_additional_notes";
+export const SEARCH_BY_NAME = "search_by_name";
+export const SEARCH_BY_COMPANY = "search_by_company";
 
 export function getMainMenuMarkup(): InlineKeyboard {
   return new InlineKeyboard()
@@ -33,6 +35,17 @@ export async function showContactInfoMenu(ctx: Context) {
   });
 }
 
+export async function showSearchContacntMenu(ctx: Context) {
+  await ctx.reply("Search contact by", {
+    reply_markup: new InlineKeyboard()
+      .text("Name", SEARCH_BY_NAME)
+      .row()
+      .text("Company", SEARCH_BY_COMPANY)
+      .row()
+      .text("Cancel", CANCEL),
+  });
+}
+
 export async function showSubmitMenu(ctx: Context) {
   await ctx.reply(
     "Provide additional information if needed or save the contact if ready",
@@ -46,7 +59,7 @@ export async function showSubmitMenu(ctx: Context) {
         .row()
         .text("Save", SAVE_CONTACT)
         .row()
-        .text("Cancel", CANCEL_CONTACT_CREATION),
+        .text("Cancel", CANCEL),
     }
   );
 }
@@ -67,7 +80,7 @@ export function getActionFromInput(
       return "next";
     case SAVE_CONTACT:
       return "submit";
-    case CANCEL_CONTACT_CREATION:
+    case CANCEL:
       return "cancel";
     case UPLOAD_FILES:
       return "upload_files";
@@ -75,6 +88,12 @@ export function getActionFromInput(
       return "upload_voice_messages";
     case ADD_ADDITIONAL_NOTES:
       return "add_additional_notes";
+    case SEARCH_BY_COMPANY:
+      return "search_by_company";
+    case SEARCH_BY_NAME:
+      return "search_by_name";
+    case SEARCH_CONTACT_KEY:
+      return "search_contact";
     default:
       return "input";
   }
