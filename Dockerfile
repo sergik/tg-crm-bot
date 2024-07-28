@@ -2,8 +2,10 @@ FROM node:lts as builder
 WORKDIR /usr/src/app
 COPY . .
 RUN rm -rf node_modules
-RUN NODE_ENV=production npm install
+RUN npm install
 RUN npm run build
+RUN rm -rf node_modules
+RUN NODE_ENV=production npm install
 FROM node:lts as prod-stage
 WORKDIR /nuxtapp
 COPY --from=builder /usr/src/app/package*.json ./
