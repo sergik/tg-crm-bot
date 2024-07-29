@@ -1,5 +1,7 @@
 import { Context, InlineKeyboard } from "grammy";
 import { ContactMachineActions } from "../contact.state.machine";
+import { Contact } from "../temp.contact.store";
+import { printContact } from "../utils";
 
 export const ADD_CONTACT_KEY = "add_contact";
 export const SEARCH_CONTACT_KEY = "search_contact";
@@ -44,6 +46,19 @@ export async function showSearchContacntMenu(ctx: Context) {
       .row()
       .text("Cancel", CANCEL),
   });
+}
+
+export async function printContactsSearchResult(
+  ctx: Context,
+  contacts: Array<Contact>
+) {
+  await ctx.reply(
+    `<b>Found contacts:</b>\n${contacts.map((c) => printContact(c)).join("\n")}`,
+    {
+      parse_mode: "HTML",
+      reply_markup: getMainMenuMarkup(),
+    }
+  );
 }
 
 export async function showSubmitMenu(ctx: Context) {

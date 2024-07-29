@@ -1,4 +1,4 @@
-import { Contact } from "../../temp.contact.store";
+import { Contact } from "../temp.contact.store";
 import {
   authorize,
   getOAuthUrlMessage,
@@ -111,7 +111,14 @@ export class GoogleSheetsStore {
     return sheet.properties.title;
   }
 
-  public async searchByName(name: string): Promise<Array<Contact>> {
+  public async searchByCompany(company: string): Promise<Array<Contact>> {
+    return this.searchByColumn(company, (r) => r[COMPANY_COLUMN_ID - 1]);
+  }
+
+  private async searchByColumn(
+    searchInput: string,
+    valueSelector: (row: any[]) => string
+  ): Promise<Array<Contact>> {
     const sheets = await this.getSheetsClient();
     const sheetName = await this.getFirstSheetName(sheets);
     const response = await sheets.spreadsheets.values.get({
@@ -123,8 +130,10 @@ export class GoogleSheetsStore {
       return [];
     }
     return rows
-      .filter((r) =>
-        r[NAME_COLUMN_ID - 1].toLowerCase().includes(name.toLowerCase())
+      .filter(
+        (r) =>
+          valueSelector(r).toLowerCase().includes(searchInput.toLowerCase())
+        //r[NAME_COLUMN_ID - 1].toLowerCase().includes(searchInput.toLowerCase())
       )
       .map((r) => {
         return {
@@ -135,6 +144,10 @@ export class GoogleSheetsStore {
           telegram: r[TELEGRAM_COLUMN_ID],
         } as Contact;
       });
+  }
+
+  public async searchByName(name: string): Promise<Array<Contact>> {
+    return this.searchByColumn(name, (r) => r[NAME_COLUMN_ID - 1]);
   }
 
   private async getFirstEmptyRowNumber(

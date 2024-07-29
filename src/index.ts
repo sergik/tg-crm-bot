@@ -2,8 +2,8 @@ import { Bot, Context } from "grammy";
 import { ContactStateMachine } from "./contact.state.machine";
 import { TempContactStore } from "./temp.contact.store";
 import { config } from "./config";
-import { GoogleSheetsStore } from "./crm/hubspot/google.sheets.store";
-import { checkTokenExists } from "./crm/hubspot/google.auth";
+import { GoogleSheetsStore } from "./crm/google.sheets.store";
+import { checkTokenExists } from "./crm/google.auth";
 import { getActionFromInput, getMainMenuMarkup } from "./telegram/utils";
 
 const bot = new Bot(config.BOT_TOKEN);

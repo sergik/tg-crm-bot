@@ -2,7 +2,7 @@ import { google } from "googleapis";
 import fs from "fs";
 import * as readline from "readline";
 import { OAuth2Client } from "google-auth-library";
-import { config } from "../../config";
+import { config } from "../config";
 
 const SCOPES = [
   "https://www.googleapis.com/auth/spreadsheets",

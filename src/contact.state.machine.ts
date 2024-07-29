@@ -5,9 +5,10 @@ import { toWaitingLeadAction } from "./state.actions/to.is.lead";
 import { toPriorityAction } from "./state.actions/to.priority";
 import { fromPriorityAction } from "./state.actions/from.priority";
 import { loadAdditionalData } from "./state.actions/load.additional.data";
-import { GoogleSheetsStore } from "./crm/hubspot/google.sheets.store";
+import { GoogleSheetsStore } from "./crm/google.sheets.store";
 import {
   getMainMenuMarkup,
+  printContactsSearchResult,
   showContactInfoMenu,
   showSearchContacntMenu,
   showSubmitMenu,
@@ -30,7 +31,8 @@ type ContactMachineStates =
   | "waiting_auth_input"
   | "waiting_for_other_input"
   | "waiting_search_type"
-  | "waiting_search_by_name";
+  | "waiting_search_by_name"
+  | "waiting_search_by_company";
 
 export type ContactMachineActions =
   | "start"
@@ -112,21 +114,30 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
         await ctx.reply("Enter contact name");
       },
     },
+    search_by_company: {
+      state: "waiting_search_by_company",
+      action: async (ctx, _) => {
+        await ctx.reply("Enter company name");
+      },
+    },
   },
   waiting_search_by_name: {
     input: {
       state: "idle",
       action: async (ctx, storeCtx) => {
         const input = ctx.message?.text as string;
-        const res = storeCtx.store.searchByName(input);
-        const printContact = (contact: Contact) =>
-          `Name: ${contact.contactName}\nCompany: ${contact.companyName}\nEmail: ${contact.email ?? ""}\nTelegram: ${contact.telegram ?? ""}\n`;
-        await ctx.reply(
-          `Found contacts:\n${(await res).map((c) => printContact(c)).join("\n")}`,
-          {
-            reply_markup: getMainMenuMarkup(),
-          }
-        );
+        const res = await storeCtx.store.searchByName(input);
+        await printContactsSearchResult(ctx, res);
+      },
+    },
+  },
+  waiting_search_by_company: {
+    input: {
+      state: "idle",
+      action: async (ctx, storeCtx) => {
+        const input = ctx.message?.text as string;
+        const res = await storeCtx.store.searchByCompany(input);
+        await printContactsSearchResult(ctx, res);
       },
     },
   },
