@@ -35,6 +35,13 @@ bot.command("c", async (ctx) => {
   );
 });
 
+bot.command("cancel", async (ctx) => {
+  await dispatchWithErrorHandling(
+    ctx,
+    async () => await stateMachine.dispatch("cancel", { ctx })
+  );
+});
+
 bot.command("s", async (ctx) => {
   await dispatchWithErrorHandling(
     ctx,
