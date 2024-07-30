@@ -115,6 +115,21 @@ export class GoogleSheetsStore {
     return this.searchByColumn(company, (r) => r[COMPANY_COLUMN_ID - 1]);
   }
 
+  public async getContactByID(id: string): Promise<Contact | null> {
+    const sheets = await this.getSheetsClient();
+    const sheetName = await this.getFirstSheetName(sheets);
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
+      range: sheetName,
+    });
+    const rows = response.data.values;
+    if (!rows || rows?.length <= parseInt(id)) {
+      return null;
+    }
+
+    return this.mapRowToContact(rows[parseInt(id)], id);
+  }
+
   private async searchByColumn(
     searchInput: string,
     valueSelector: (row: any[]) => string
@@ -130,20 +145,24 @@ export class GoogleSheetsStore {
       return [];
     }
     return rows
-      .filter(
-        (r) =>
-          valueSelector(r).toLowerCase().includes(searchInput.toLowerCase())
-        //r[NAME_COLUMN_ID - 1].toLowerCase().includes(searchInput.toLowerCase())
+      .map((row, index) => ({ row, index }))
+      .filter((i) =>
+        valueSelector(i.row).toLowerCase().includes(searchInput.toLowerCase())
       )
-      .map((r) => {
-        return {
-          contactName: r[NAME_COLUMN_ID - 1],
-          companyName: r[COMPANY_COLUMN_ID - 1],
-          email: r[EMAIL_COLUMN_ID - 1],
-          phoneNumber: r[PHONE_COLUMN_ID - 1],
-          telegram: r[TELEGRAM_COLUMN_ID],
-        } as Contact;
+      .map((item) => {
+        return this.mapRowToContact(item.row, item.index.toString());
       });
+  }
+
+  private mapRowToContact(row: any[], id: string): Contact {
+    return {
+      id: id.toString(),
+      contactName: row[NAME_COLUMN_ID - 1],
+      companyName: row[COMPANY_COLUMN_ID - 1],
+      email: row[EMAIL_COLUMN_ID - 1],
+      phoneNumber: row[PHONE_COLUMN_ID - 1],
+      telegram: row[TELEGRAM_COLUMN_ID],
+    } as Contact;
   }
 
   public async searchByName(name: string): Promise<Array<Contact>> {

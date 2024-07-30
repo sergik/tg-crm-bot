@@ -17,6 +17,7 @@ export const ADD_ADDITIONAL_NOTES = "add_additional_notes";
 export const SEARCH_BY_NAME = "search_by_name";
 export const SEARCH_BY_COMPANY = "search_by_company";
 export const SEARCH_COMPANY_INFO = "search_company_info";
+export const SUGGEST_CONTACT_QUESTIONS = "suggest_contact_questions";
 
 export function getMainMenuMarkup(): InlineKeyboard {
   return new InlineKeyboard()
@@ -24,7 +25,9 @@ export function getMainMenuMarkup(): InlineKeyboard {
     .row()
     .text("Search Contact", SEARCH_CONTACT_KEY)
     .row()
-    .text("Search Company Information", SEARCH_COMPANY_INFO);
+    .text("Search Company Information", SEARCH_COMPANY_INFO)
+    .row()
+    .text("Suggest Questions For Contact", SUGGEST_CONTACT_QUESTIONS);
 }
 
 export async function showContactInfoMenu(ctx: Context) {
@@ -114,6 +117,8 @@ export function getActionFromInput(
       return "search_contact";
     case SEARCH_COMPANY_INFO:
       return "search_company_info";
+    case SUGGEST_CONTACT_QUESTIONS:
+      return "suggest_contact_questions";
     default:
       return "input";
   }

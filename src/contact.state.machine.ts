@@ -13,7 +13,7 @@ import {
   showSearchContacntMenu,
   showSubmitMenu,
 } from "./telegram/utils";
-import { searchCompanyInfo } from "./chat.gpt";
+import { questionsToContact, searchCompanyInfo } from "./chat.gpt";
 
 type ContactMachineStates =
   | "idle"
@@ -34,7 +34,8 @@ type ContactMachineStates =
   | "waiting_search_type"
   | "waiting_search_by_name"
   | "waiting_search_by_company"
-  | "waiting_search_company_input";
+  | "waiting_search_company_input"
+  | "waiting_contact_id_for_questions";
 
 export type ContactMachineActions =
   | "start"
@@ -52,7 +53,8 @@ export type ContactMachineActions =
   | "add_additional_notes"
   | "search_by_name"
   | "search_by_company"
-  | "search_company_info";
+  | "search_company_info"
+  | "suggest_contact_questions";
 
 export type StateAction = (
   ctx: Context,
@@ -107,6 +109,12 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
         await ctx.reply(`Enter company information`);
       },
     },
+    suggest_contact_questions: {
+      state: "waiting_contact_id_for_questions",
+      action: async (ctx) => {
+        await ctx.reply(`Enter contact ID`);
+      },
+    },
   },
   waiting_search_company_input: {
     input: {
@@ -118,6 +126,25 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
         await ctx.reply(result, {
           reply_markup: getMainMenuMarkup(),
         });
+      },
+    },
+  },
+  waiting_contact_id_for_questions: {
+    input: {
+      state: "idle",
+      action: async (ctx, storeCtx) => {
+        const id = ctx.message?.text as string;
+        const contact = await storeCtx.store.getContactByID(id);
+        if (contact) {
+          const result = (await questionsToContact(contact)) ?? "Nothing found";
+          await ctx.reply(result, {
+            reply_markup: getMainMenuMarkup(),
+          });
+        } else {
+          await ctx.reply(`Contact with id ${id} not found`, {
+            reply_markup: getMainMenuMarkup(),
+          });
+        }
       },
     },
   },
