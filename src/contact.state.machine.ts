@@ -13,6 +13,7 @@ import {
   showSearchContacntMenu,
   showSubmitMenu,
 } from "./telegram/utils";
+import { searchCompanyInfo } from "./chat.gpt";
 
 type ContactMachineStates =
   | "idle"
@@ -32,7 +33,8 @@ type ContactMachineStates =
   | "waiting_for_other_input"
   | "waiting_search_type"
   | "waiting_search_by_name"
-  | "waiting_search_by_company";
+  | "waiting_search_by_company"
+  | "waiting_search_company_input";
 
 export type ContactMachineActions =
   | "start"
@@ -49,7 +51,8 @@ export type ContactMachineActions =
   | "search_contact"
   | "add_additional_notes"
   | "search_by_name"
-  | "search_by_company";
+  | "search_by_company"
+  | "search_company_info";
 
 export type StateAction = (
   ctx: Context,
@@ -96,6 +99,25 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
       state: "waiting_search_type",
       action: async (ctx, _) => {
         await showSearchContacntMenu(ctx);
+      },
+    },
+    search_company_info: {
+      state: "waiting_search_company_input",
+      action: async (ctx) => {
+        await ctx.reply(`Enter company information`);
+      },
+    },
+  },
+  waiting_search_company_input: {
+    input: {
+      state: "idle",
+      action: async (ctx, storeCtx) => {
+        const companyName = ctx.message?.text as string;
+        const result =
+          (await searchCompanyInfo(companyName)) ?? "Nothing found";
+        await ctx.reply(result, {
+          reply_markup: getMainMenuMarkup(),
+        });
       },
     },
   },

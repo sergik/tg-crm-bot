@@ -16,12 +16,15 @@ export const UPLOAD_VOICE_MESSAGES = "upload_voice_messages";
 export const ADD_ADDITIONAL_NOTES = "add_additional_notes";
 export const SEARCH_BY_NAME = "search_by_name";
 export const SEARCH_BY_COMPANY = "search_by_company";
+export const SEARCH_COMPANY_INFO = "search_company_info";
 
 export function getMainMenuMarkup(): InlineKeyboard {
   return new InlineKeyboard()
     .text("Add Contact", ADD_CONTACT_KEY)
     .row()
-    .text("Search Contact", SEARCH_CONTACT_KEY);
+    .text("Search Contact", SEARCH_CONTACT_KEY)
+    .row()
+    .text("Search Company Information", SEARCH_COMPANY_INFO);
 }
 
 export async function showContactInfoMenu(ctx: Context) {
@@ -109,6 +112,8 @@ export function getActionFromInput(
       return "search_by_name";
     case SEARCH_CONTACT_KEY:
       return "search_contact";
+    case SEARCH_COMPANY_INFO:
+      return "search_company_info";
     default:
       return "input";
   }
