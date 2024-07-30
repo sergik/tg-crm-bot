@@ -106,7 +106,7 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
     search_company_info: {
       state: "waiting_search_company_input",
       action: async (ctx) => {
-        await ctx.reply(`Enter company information`);
+        await ctx.reply(`Enter company name`);
       },
     },
     suggest_contact_questions: {
@@ -310,8 +310,8 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
       state: "idle",
       action: async (ctx, storeCtx) => {
         const contact = await storeCtx.tmpContactStore.getContact();
-        await storeCtx.store.createContact(contact);
-        await ctx.reply("Contact saved.", {
+        const id = await storeCtx.store.createContact(contact);
+        await ctx.reply(`Contact with ID: ${id} saved.`, {
           reply_markup: getMainMenuMarkup(),
         });
       },

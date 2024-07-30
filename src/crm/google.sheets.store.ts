@@ -17,6 +17,7 @@ const PRIORITY_COLUMN_ID = 5;
 const TELEGRAM_COLUMN_ID = 6;
 const PHONE_COLUMN_ID = 7;
 const EMAIL_COLUMN_ID = 8;
+const NOTES_COLUMN_ID = 9;
 
 const SUBFOLDER_NAME = "CRM Bot";
 
@@ -44,7 +45,7 @@ export class GoogleSheetsStore {
     return google.drive({ version: "v3", auth });
   }
 
-  public async createContact(contact: Contact): Promise<void> {
+  public async createContact(contact: Contact): Promise<string | null> {
     const sheets = await this.getSheetsClient();
     const sheetName = await this.getFirstSheetName(sheets);
     const firstEmptyRow = await this.getFirstEmptyRowNumber(sheets, sheetName);
@@ -63,9 +64,11 @@ export class GoogleSheetsStore {
         requestBody: resource,
         valueInputOption,
       });
+      return firstEmptyRow.toString();
     } catch (e) {
       handleError(e);
     }
+    return null;
   }
 
   private async uploadFiles(files: string[]): Promise<Array<string | null>> {
@@ -159,9 +162,11 @@ export class GoogleSheetsStore {
       id: id.toString(),
       contactName: row[NAME_COLUMN_ID - 1],
       companyName: row[COMPANY_COLUMN_ID - 1],
+      position: row[POSITION_COLUMN_ID - 1],
       email: row[EMAIL_COLUMN_ID - 1],
       phoneNumber: row[PHONE_COLUMN_ID - 1],
-      telegram: row[TELEGRAM_COLUMN_ID],
+      telegram: row[TELEGRAM_COLUMN_ID - 1],
+      notes: row[NOTES_COLUMN_ID - 1],
     } as Contact;
   }
 
