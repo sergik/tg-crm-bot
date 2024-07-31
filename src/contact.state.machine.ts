@@ -124,6 +124,7 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
         const result =
           (await searchCompanyInfo(companyName)) ?? "Nothing found";
         await ctx.reply(result, {
+          parse_mode: "Markdown",
           reply_markup: getMainMenuMarkup(),
         });
       },
@@ -138,6 +139,7 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
         if (contact) {
           const result = (await questionsToContact(contact)) ?? "Nothing found";
           await ctx.reply(result, {
+            parse_mode: "Markdown",
             reply_markup: getMainMenuMarkup(),
           });
         } else {
