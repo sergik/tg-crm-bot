@@ -26,7 +26,7 @@ export const searchCompanyInfo = async (companyName: string) => {
 };
 
 export const questionsToContact = async (contact: Contact) => {
-  const prompt = `I need to sell Sales, PR & Marketing services, what questions should I ask if I speak to ${contact.position} from Mifort? Tailor questions to his responsibilities and competencies.
+  const prompt = `I need to sell Sales, PR & Marketing services, what questions should I ask if I speak to ${contact.position} from ${contact.companyName}? Tailor questions to his responsibilities and competencies.
 
 Focus on the following agenda:
 
