@@ -12,11 +12,29 @@ export const askChatGPT4 = async (prompt: string) => {
 };
 
 export const searchCompanyInfo = async (companyName: string) => {
-  const prompt = `Could you please provide me information about company ${companyName}.`;
+  const prompt = `Provide the info about  ${companyName}
+1)the year it was founded
+2) locations where it has offices
+3) how many employees are there
+4)C-level and key decision makers 
+5) what this company offers
+6) who are its customers
+7) its annual turnover
+8) has it recently received investments? what round and amount?`;
+
   return askChatGPT4(prompt);
 };
 
 export const questionsToContact = async (contact: Contact) => {
-  const prompt = `Could you please suggest me 5 questions to person who works as ${contact.position} at company ${contact.companyName}.`;
+  const prompt = `I need to sell Sales, PR & Marketing services, what questions should I ask if I speak to ${contact.position} from Mifort? Tailor questions to his responsibilities and competencies.
+
+Focus on the following agenda:
+
+1) Discuss addressee's company offerings, client types and target market
+2) Outline company's current state related to the product/service being sold
+3) Confirm the correct contact person for further discussions about my offering
+4) Agree on next steps and exchange information to stay in touch
+5) Additional tips`;
+
   return askChatGPT4(prompt);
 };
