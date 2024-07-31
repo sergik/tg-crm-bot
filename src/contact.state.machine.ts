@@ -13,7 +13,10 @@ import {
   showSearchContacntMenu,
   showSubmitMenu,
 } from "./telegram/utils";
-import { questionsToContact, searchCompanyInfo } from "./chat.gpt";
+import { parseBusinessCard, questionsToContact, searchCompanyInfo } from "./chat.gpt";
+import { downloadFile } from "./utils";
+import Tesseract from 'tesseract.js';
+import * as fs from 'fs';
 
 type ContactMachineStates =
   | "idle"
@@ -35,7 +38,8 @@ type ContactMachineStates =
   | "waiting_search_by_name"
   | "waiting_search_by_company"
   | "waiting_search_company_input"
-  | "waiting_contact_id_for_questions";
+  | "waiting_contact_id_for_questions"
+  | "wait_for_bc";
 
 export type ContactMachineActions =
   | "start"
@@ -54,7 +58,8 @@ export type ContactMachineActions =
   | "search_by_name"
   | "search_by_company"
   | "search_company_info"
-  | "suggest_contact_questions";
+  | "suggest_contact_questions"
+  | "add_contact_from_bc";
 
 export type StateAction = (
   ctx: Context,
@@ -84,7 +89,7 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
     start: {
       state: "waiting_contact_name",
       action: async (ctx, store) => {
-        store.tmpContactStore.resetContact();
+        await store.tmpContactStore.resetContact();
         await ctx.reply(
           `Starting new contact creation. Please enter contact name`
         );
@@ -115,6 +120,30 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
         await ctx.reply(`Enter contact ID`);
       },
     },
+    add_contact_from_bc: {
+      state: "wait_for_bc",
+      action: async (ctx) => {
+        await ctx.reply("Upload contact bc");
+      }
+    }
+  },
+  wait_for_bc: {
+    input: {
+      state: "waiting_contact_name",
+      action: async (ctx, storeCtx) => {
+        if (ctx.message?.photo) {
+          await storeCtx.tmpContactStore.resetContact();
+          const contact = await storeCtx.tmpContactStore.getContact();
+          const fileId = ctx.message?.photo[ctx.message?.photo.length - 1].file_id;
+          const fileName = await downloadFile(ctx, fileId);
+          contact.files = [...contact.files, fileName];
+          const { data: { text } } = await Tesseract.recognize(fileName, 'eng');
+          const res = await parseBusinessCard(text);
+          await ctx.reply(res ?? "Failed to parse");
+        }
+      }
+    },
+    cancel: cancelActionDef,
   },
   waiting_search_company_input: {
     input: {

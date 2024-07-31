@@ -38,3 +38,9 @@ Focus on the following agenda:
 
   return askChatGPT4(prompt);
 };
+
+export async function parseBusinessCard(text: string) {
+  const prompt = `Please reponse in json format with the following information from this business card: name, company, position, email, phone and telegram. Business card information: 
+    ${text}`;
+  return await askChatGPT4(prompt);
+}

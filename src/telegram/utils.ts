@@ -18,10 +18,13 @@ export const SEARCH_BY_NAME = "search_by_name";
 export const SEARCH_BY_COMPANY = "search_by_company";
 export const SEARCH_COMPANY_INFO = "search_company_info";
 export const SUGGEST_CONTACT_QUESTIONS = "suggest_contact_questions";
+export const ADD_CONACT_FROM_BC = "add_contact_from_bc";
 
 export function getMainMenuMarkup(): InlineKeyboard {
   return new InlineKeyboard()
     .text("Add Contact", ADD_CONTACT_KEY)
+    .row()
+    .text("Add Contact From BC", ADD_CONACT_FROM_BC)
     .row()
     .text("Search Contact", SEARCH_CONTACT_KEY)
     .row()
@@ -119,6 +122,8 @@ export function getActionFromInput(
       return "search_company_info";
     case SUGGEST_CONTACT_QUESTIONS:
       return "suggest_contact_questions";
+    case  ADD_CONACT_FROM_BC:
+      return "add_contact_from_bc";
     default:
       return "input";
   }
