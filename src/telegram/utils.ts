@@ -84,7 +84,7 @@ export async function showSubmitMenu(ctx: Context) {
       reply_markup: new InlineKeyboard()
         .text("Upload files", UPLOAD_FILES)
         .row()
-        .text("Upload voce messages", UPLOAD_VOICE_MESSAGES)
+        .text("Upload voice messages", UPLOAD_VOICE_MESSAGES)
         .row()
         .text("Add additional notes", ADD_ADDITIONAL_NOTES)
         .row()
