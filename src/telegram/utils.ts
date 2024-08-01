@@ -57,6 +57,13 @@ export async function showSearchContacntMenu(ctx: Context) {
   });
 }
 
+export async function printWithNext(ctx: Context, msg: string) {
+  await ctx.reply(msg, {
+    parse_mode: "HTML",
+    reply_markup: new InlineKeyboard().text("Next", MOVE_NEXT),
+  });
+}
+
 export async function printContactsSearchResult(
   ctx: Context,
   contacts: Array<Contact>
@@ -122,7 +129,7 @@ export function getActionFromInput(
       return "search_company_info";
     case SUGGEST_CONTACT_QUESTIONS:
       return "suggest_contact_questions";
-    case  ADD_CONACT_FROM_BC:
+    case ADD_CONACT_FROM_BC:
       return "add_contact_from_bc";
     default:
       return "input";

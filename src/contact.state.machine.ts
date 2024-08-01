@@ -9,14 +9,18 @@ import { GoogleSheetsStore } from "./crm/google.sheets.store";
 import {
   getMainMenuMarkup,
   printContactsSearchResult,
+  printWithNext,
   showContactInfoMenu,
   showSearchContacntMenu,
   showSubmitMenu,
 } from "./telegram/utils";
-import { parseBusinessCard, questionsToContact, searchCompanyInfo } from "./chat.gpt";
-import { downloadFile } from "./utils";
-import Tesseract from 'tesseract.js';
-import * as fs from 'fs';
+import {
+  parseBusinessCard,
+  questionsToContact,
+  searchCompanyInfo,
+} from "./chat.gpt";
+import { downloadFile, fillContactFromJson, printContact } from "./utils";
+// import Tesseract from "tesseract.js";
 
 type ContactMachineStates =
   | "idle"
@@ -83,6 +87,34 @@ const cancelActionDef = {
   state: "idle" as ContactMachineStates,
   action: cancelAction,
 };
+const contactEntered: StateAction = async (ctx, storeCtx) => {
+  await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
+    contact.contactName = val;
+  });
+  const contact = await storeCtx.tmpContactStore.getContact();
+  if (contact.companyName) {
+    await printWithNext(
+      ctx,
+      `Parsed company is <b>${contact.companyName}</b>. Enter new company name or press next if parsed is valid.`
+    );
+  } else {
+    await ctx.reply(`Please enter the company name`);
+  }
+};
+const companyEntered: StateAction = async (ctx, storeCtx) => {
+  await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
+    contact.companyName = val;
+  });
+  const contact = await storeCtx.tmpContactStore.getContact();
+  if (contact.position) {
+    await printWithNext(
+      ctx,
+      `Parsed position is <b>${contact.position}</b>. Enter new position or press next if parsed is valid.`
+    );
+  } else {
+    await ctx.reply(`Please enter contact position`);
+  }
+};
 
 const contactStateMachineTransitions: ContactStateMachineTransitions = {
   idle: {
@@ -124,8 +156,8 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
       state: "wait_for_bc",
       action: async (ctx) => {
         await ctx.reply("Upload contact bc");
-      }
-    }
+      },
+    },
   },
   wait_for_bc: {
     input: {
@@ -133,15 +165,25 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
       action: async (ctx, storeCtx) => {
         if (ctx.message?.photo) {
           await storeCtx.tmpContactStore.resetContact();
-          const contact = await storeCtx.tmpContactStore.getContact();
-          const fileId = ctx.message?.photo[ctx.message?.photo.length - 1].file_id;
+          let contact = await storeCtx.tmpContactStore.getContact();
+          const fileId =
+            ctx.message?.photo[ctx.message?.photo.length - 1].file_id;
           const fileName = await downloadFile(ctx, fileId);
           contact.files = [...contact.files, fileName];
-          const { data: { text } } = await Tesseract.recognize(fileName, 'eng');
-          const res = await parseBusinessCard(text);
-          await ctx.reply(res ?? "Failed to parse");
+          // const { data: { text } } = await Tesseract.recognize(fileName, 'eng');
+          const res = await parseBusinessCard(fileName);
+          contact = fillContactFromJson(contact, res);
+          await ctx.reply(`Parsed contact details: ${printContact(contact)}`);
+          if (contact.contactName) {
+            await printWithNext(
+              ctx,
+              `Parsed name is <b>${contact.contactName}</b>. Enter new contact name or press next if parsed name valid.`
+            );
+          } else {
+            await ctx.reply("Please enter contact name");
+          }
         }
-      }
+      },
     },
     cancel: cancelActionDef,
   },
@@ -234,29 +276,31 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
   waiting_contact_name: {
     input: {
       state: "waiting_company",
-      action: async (ctx, storeCtx) => {
-        await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
-          contact.contactName = val;
-        });
-        await ctx.reply(`Please enter the company name`);
-      },
+      action: contactEntered,
+    },
+    next: {
+      state: "waiting_company",
+      action: contactEntered,
     },
     cancel: cancelActionDef,
   },
   waiting_company: {
     input: {
       state: "waiting_position",
-      action: async (ctx, storeCtx) => {
-        await updateFieldInTmpStore(ctx, storeCtx, (contact, val) => {
-          contact.companyName = val;
-        });
-        await ctx.reply(`Please enter contact position`);
-      },
+      action: companyEntered,
+    },
+    next: {
+      state: "waiting_position",
+      action: companyEntered,
     },
     cancel: cancelActionDef,
   },
   waiting_position: {
     input: {
+      state: "waiting_is_lead",
+      action: toWaitingLeadAction,
+    },
+    next: {
       state: "waiting_is_lead",
       action: toWaitingLeadAction,
     },

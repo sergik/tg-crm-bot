@@ -1,12 +1,34 @@
 import OpenAI from "openai";
 import { config } from "../config";
 import { Contact } from "../temp.contact.store";
+import { ChatCompletionContentPart } from "openai/resources";
+import fs from "fs";
+import path from "path";
 
-export const askChatGPT4 = async (prompt: string) => {
+export const askChatGPT4 = async (
+  prompt: string,
+  imagePath: string | null = null
+) => {
+  let content = [
+    { type: "text", text: prompt },
+  ] as Array<ChatCompletionContentPart>;
+  if (imagePath) {
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString("base64");
+    content = [
+      ...content,
+      {
+        type: "image_url",
+        image_url: {
+          url: `data:image/${path.extname(imagePath).replace(".", "")};base64,${base64Image}`,
+        },
+      },
+    ];
+  }
   const openai = new OpenAI({ apiKey: config.CHAT_GPT_API_KEY });
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
-    messages: [{ role: "user", content: prompt }],
+    messages: [{ role: "user", content }],
   });
   return response.choices[0].message?.content;
 };
@@ -39,8 +61,7 @@ Focus on the following agenda:
   return askChatGPT4(prompt);
 };
 
-export async function parseBusinessCard(text: string) {
-  const prompt = `Please reponse in json format with the following information from this business card: name, company, position, email, phone and telegram. Business card information: 
-    ${text}`;
-  return await askChatGPT4(prompt);
+export async function parseBusinessCard(imagePath: string) {
+  const prompt = `Please reponse in json format with the following information from this business card: name, company, position, email, phone and telegram.`;
+  return await askChatGPT4(prompt, imagePath);
 }
