@@ -173,7 +173,7 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
           // const { data: { text } } = await Tesseract.recognize(fileName, 'eng');
           const res = await parseBusinessCard(fileName);
           contact = fillContactFromJson(contact, res);
-          await ctx.reply(`Parsed contact details: ${printContact(contact)}`);
+          await ctx.reply(`Parsed contact details:\n ${printContact(contact)}`);
           if (contact.contactName) {
             await printWithNext(
               ctx,
