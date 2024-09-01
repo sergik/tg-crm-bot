@@ -199,7 +199,7 @@ export class GoogleSheetsStore {
       contact.isLead === true ? "lead" : "not lead",
       contact.priority ?? "",
       contact.telegram ?? "",
-      contact.phoneNumber ?? "",
+      contact.phoneNumber ? JSON.stringify(contact.phoneNumber) : "",
       contact.email ?? "",
       contact.additionalNotes.join(",\n"),
       fileLinks.join(",\n"),

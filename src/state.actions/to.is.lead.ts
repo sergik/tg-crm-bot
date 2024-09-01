@@ -15,8 +15,10 @@ export const toWaitingLeadAction = async (
 ) => {
   const position = ctx.message?.text as string;
   const contact = await storeCtx.tmpContactStore.getContact();
-  contact.position = position;
-  await storeCtx.tmpContactStore.updateContact(contact);
+  if (position) {
+    contact.position = position;
+    await storeCtx.tmpContactStore.updateContact(contact);
+  }
   await ctx.reply(leadManu, {
     parse_mode: "HTML",
     reply_markup: leadMeanuMarkup,

@@ -452,8 +452,10 @@ const updateFieldInTmpStore = async (
 ) => {
   const contact = await storeCtx.tmpContactStore.getContact();
   const val = ctx.message?.text as string;
-  fieldSetter(contact, val);
-  await storeCtx.tmpContactStore.updateContact(contact);
+  if (val) {
+    fieldSetter(contact, val);
+    await storeCtx.tmpContactStore.updateContact(contact);
+  }
 };
 
 export class ContactStateMachine {
