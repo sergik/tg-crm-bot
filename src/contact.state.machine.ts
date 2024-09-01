@@ -466,6 +466,10 @@ export class ContactStateMachine {
     return this.currentState;
   }
 
+  public reset() {
+    this.currentState = "idle";
+  }
+
   public async dispatch(
     action: ContactMachineActions,
     args: { ctx: Context }

@@ -35,6 +35,15 @@ bot.command("c", async (ctx) => {
   );
 });
 
+bot.command("trace", async (ctx) => {
+  ctx.reply(stateMachine.getCurrentState());
+});
+
+bot.command("reset", async (ctx) => {
+  stateMachine.reset();
+  ctx.reply("Reseted");
+});
+
 bot.command("cancel", async (ctx) => {
   await dispatchWithErrorHandling(
     ctx,
