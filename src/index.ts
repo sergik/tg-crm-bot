@@ -6,7 +6,7 @@ import { GoogleSheetsStore } from "./crm/google.sheets.store";
 import { checkTokenExists } from "./crm/google.auth";
 import { getActionFromInput, getMainMenuMarkup } from "./telegram/utils";
 
-const bot = new Bot(config.BOT_TOKEN);
+const bot = new Bot(config.TG_BOT_TOKEN);
 const store = new GoogleSheetsStore(config.SPREADSHEET_ID);
 
 const tmpContactStore = new TempContactStore();
