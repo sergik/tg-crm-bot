@@ -35,7 +35,7 @@ export async function downloadFile(
   ctx: Context,
   fileId: string
 ): Promise<string> {
-  const fileUrl = `https://api.telegram.org/file/bot${config.BOT_TOKEN}/`;
+  const fileUrl = `https://api.telegram.org/file/bot${config.TG_BOT_TOKEN}/`;
   const fileInfo = await ctx.api.getFile(fileId);
   const url = `${fileUrl}${fileInfo.file_path}`;
   const fileExtension = path.extname(fileInfo.file_path ?? "");

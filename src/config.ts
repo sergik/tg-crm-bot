@@ -1,6 +1,6 @@
 import { load } from "ts-dotenv";
 interface IConfig {
-  BOT_TOKEN: string;
+  TG_BOT_TOKEN: string;
   SPREADSHEET_ID: string;
   AUTH_CLIENT_ID: string;
   AUTH_CLIENT_SECRET: string;
@@ -9,7 +9,7 @@ interface IConfig {
 }
 
 export const config: IConfig = load({
-  BOT_TOKEN: String,
+  TG_BOT_TOKEN: String,
   SPREADSHEET_ID: String,
   AUTH_CLIENT_ID: String,
   AUTH_CLIENT_SECRET: String,
