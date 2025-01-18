@@ -1,6 +1,23 @@
-version: '3'
 services:
+  db:
+      image: postgres:latest
+      container_name: postgres-db
+      restart: always
+      environment:
+        POSTGRES_USER: pguser
+        POSTGRES_PASSWORD: mypassword
+        POSTGRES_DB: crmbot
+      volumes:
+        - db_data:/var/lib/postgresql/data
+      ports:
+        - "5432:5432"
   bot:
     build: .
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://pguser:mypassword@db:5432/crmbot"
     env_file:
       - .env
+volumes:
+  db_data:

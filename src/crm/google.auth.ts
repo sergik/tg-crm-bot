@@ -3,6 +3,7 @@ import fs from "fs";
 import * as readline from "readline";
 import { OAuth2Client } from "google-auth-library";
 import { config } from "../config";
+import { UserStore } from "../store/user.store";
 
 const SCOPES = [
   "https://www.googleapis.com/auth/spreadsheets",
@@ -20,16 +21,11 @@ export async function getServiceAccountAuth(
   });
 }
 
-export function authorize(): Promise<OAuth2Client> {
+export async function authorize(tokenInfo: string): Promise<OAuth2Client> {
   const oAuth2Client = getOAuthClient();
-  return new Promise((resolve, reject) => {
-    fs.readFile(TOKEN_PATH, (err, token) => {
-      if (err) return reject(err);
-      oAuth2Client.setCredentials(JSON.parse(token as any));
-      oAuth2Client.on;
-      resolve(oAuth2Client);
-    });
-  });
+  oAuth2Client.setCredentials(JSON.parse(tokenInfo as any));
+  oAuth2Client.on;
+  return oAuth2Client;
 }
 
 function getOAuthClient(): OAuth2Client {
@@ -53,18 +49,17 @@ export function checkTokenExists(): boolean {
   return fs.existsSync(TOKEN_PATH);
 }
 
-export function saveToken(code: string): Promise<void> {
+export async function saveToken(code: string, store: UserStore): Promise<void> {
   const oAuth2Client = getOAuthClient();
-  return new Promise((resolve, reject) => {
+  const promise = new Promise<string>((resolve, reject) => {
     oAuth2Client.getToken(code, (err: any, token: any) => {
       if (err) return reject(err);
       oAuth2Client.setCredentials(token);
-      fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
+      resolve(JSON.stringify(token) as string);
     });
   });
+  const token = await promise;
+  await store.saveGoogleToken(token);
 }
 
 export function getOAuthUrlMessage(): string {

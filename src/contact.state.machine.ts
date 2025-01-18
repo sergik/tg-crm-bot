@@ -462,7 +462,7 @@ export class ContactStateMachine {
   private currentState: ContactMachineStates = "idle";
   constructor(
     private tempStore: TempContactStore,
-    private store: GoogleSheetsStore
+    private storeFactory: (chatId: string) => GoogleSheetsStore
   ) {}
   public getCurrentState(): ContactMachineStates {
     return this.currentState;
@@ -476,6 +476,9 @@ export class ContactStateMachine {
     action: ContactMachineActions,
     args: { ctx: Context }
   ): Promise<void> {
+    if (!args.ctx.from?.id) {
+      return;
+    }
     const transitions = contactStateMachineTransitions[this.currentState];
     const nextTransition = transitions[action];
     if (!nextTransition) {
@@ -486,7 +489,7 @@ export class ContactStateMachine {
     if (nextTransition.action) {
       await nextTransition.action(args.ctx, {
         tmpContactStore: this.tempStore,
-        store: this.store,
+        store: this.storeFactory(args.ctx.from?.id.toString()),
       });
     }
     this.currentState = nextTransition.state;

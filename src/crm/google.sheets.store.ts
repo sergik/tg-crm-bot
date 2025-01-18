@@ -8,6 +8,7 @@ import {
 import { google, sheets_v4 } from "googleapis";
 import path from "path";
 import fs from "fs";
+import { UserStore } from "../store/user.store";
 
 const NAME_COLUMN_ID = 1;
 const COMPANY_COLUMN_ID = 2;
@@ -22,10 +23,17 @@ const NOTES_COLUMN_ID = 9;
 const SUBFOLDER_NAME = "CRM Bot";
 
 export class GoogleSheetsStore {
-  constructor(private spreadsheetId: string) {}
+  private userStore: UserStore;
+  constructor(
+    private spreadsheetId: string,
+    userChatId: string
+  ) {
+    this.userStore = new UserStore(userChatId);
+  }
 
   private async getSheetsClient() {
-    const auth = await authorize();
+    const token = await this.userStore.loadGoogleToken();
+    const auth = await authorize(token);
     return google.sheets({
       version: "v4",
       auth,
@@ -36,12 +44,13 @@ export class GoogleSheetsStore {
     return getOAuthUrlMessage();
   }
 
-  public applyAuthResponse(code: string) {
-    saveToken(code);
+  public async applyAuthResponse(code: string) {
+    await saveToken(code, this.userStore);
   }
 
   private async getDriveClient() {
-    const auth = await authorize();
+    const token = await this.userStore.loadGoogleToken();
+    const auth = await authorize(token);
     return google.drive({ version: "v3", auth });
   }
 

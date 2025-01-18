@@ -5,12 +5,20 @@ import { config } from "./config";
 import { GoogleSheetsStore } from "./crm/google.sheets.store";
 import { checkTokenExists } from "./crm/google.auth";
 import { getActionFromInput, getMainMenuMarkup } from "./telegram/utils";
+import { AppDataSource } from "./store/datasoruce";
 
+AppDataSource.initialize()
+  .then(() => {
+    console.log("Database synchronized!");
+  })
+  .catch((error) => console.error(error));
 const bot = new Bot(config.TG_BOT_TOKEN);
-const store = new GoogleSheetsStore(config.SPREADSHEET_ID);
 
 const tmpContactStore = new TempContactStore();
-const stateMachine = new ContactStateMachine(tmpContactStore, store);
+const stateMachine = new ContactStateMachine(
+  tmpContactStore,
+  (chatId) => new GoogleSheetsStore(config.SPREADSHEET_ID, chatId)
+);
 
 bot.command("a", async (ctx) => {
   await dispatchWithErrorHandling(ctx, async () => {
