@@ -22,7 +22,7 @@ import {
 import { downloadFile, fillContactFromJson, printContact } from "./utils";
 // import Tesseract from "tesseract.js";
 
-type ContactMachineStates =
+export type ContactMachineStates =
   | "idle"
   | "waiting_contact_name"
   | "waiting_company"
@@ -269,7 +269,7 @@ const contactStateMachineTransitions: ContactStateMachineTransitions = {
       state: "idle",
       action: async (ctx, storeCtx) => {
         const input = ctx.message?.text as string;
-        storeCtx.store.applyAuthResponse(input);
+        await storeCtx.store.applyAuthResponse(input);
       },
     },
   },
@@ -459,10 +459,10 @@ const updateFieldInTmpStore = async (
 };
 
 export class ContactStateMachine {
-  private currentState: ContactMachineStates = "idle";
   constructor(
     private tempStore: TempContactStore,
-    private storeFactory: (chatId: string) => GoogleSheetsStore
+    private storeFactory: (chatId: string) => GoogleSheetsStore,
+    private currentState: ContactMachineStates = "idle"
   ) {}
   public getCurrentState(): ContactMachineStates {
     return this.currentState;

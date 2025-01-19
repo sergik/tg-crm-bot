@@ -1,3 +1,4 @@
+import { ContactMachineStates } from "../contact.state.machine";
 import { AppDataSource, User } from "./datasoruce";
 
 export class UserStore {
@@ -16,6 +17,17 @@ export class UserStore {
     const user = await this.getOrCreateUser();
     const userRepository = AppDataSource.getRepository(User);
     await userRepository.update({ id: user.id }, { googleAuthInfo });
+  }
+
+  public async getCurrentState(): Promise<ContactMachineStates> {
+    const user = await this.getOrCreateUser();
+    return user.currentState ?? "idle";
+  }
+
+  public async setCurrentState(newState: ContactMachineStates): Promise<void> {
+    const user = await this.getOrCreateUser();
+    const userRepository = AppDataSource.getRepository(User);
+    await userRepository.update({ id: user.id }, { currentState: newState });
   }
 
   public async loadGoogleToken(): Promise<string> {

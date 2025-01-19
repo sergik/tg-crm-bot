@@ -6,6 +6,7 @@ import { GoogleSheetsStore } from "./crm/google.sheets.store";
 import { checkTokenExists } from "./crm/google.auth";
 import { getActionFromInput, getMainMenuMarkup } from "./telegram/utils";
 import { AppDataSource } from "./store/datasoruce";
+import { executeStateAction, getCurrentState, resetState } from "./utils";
 
 AppDataSource.initialize()
   .then(() => {
@@ -14,55 +15,50 @@ AppDataSource.initialize()
   .catch((error) => console.error(error));
 const bot = new Bot(config.TG_BOT_TOKEN);
 
-const tmpContactStore = new TempContactStore();
-const stateMachine = new ContactStateMachine(
-  tmpContactStore,
-  (chatId) => new GoogleSheetsStore(config.SPREADSHEET_ID, chatId)
-);
-
 bot.command("a", async (ctx) => {
   await dispatchWithErrorHandling(ctx, async () => {
     if (checkTokenExists()) {
-      await stateMachine.dispatch("start", { ctx });
+      await executeStateAction(ctx, "start");
     } else {
-      await stateMachine.dispatch("authorize", { ctx });
+      await executeStateAction(ctx, "authorize");
     }
   });
 });
 
 bot.command("auth", async (ctx) => {
   await dispatchWithErrorHandling(ctx, async () => {
-    await stateMachine.dispatch("authorize", { ctx });
+    await executeStateAction(ctx, "authorize");
   });
 });
 
 bot.command("c", async (ctx) => {
   await dispatchWithErrorHandling(
     ctx,
-    async () => await stateMachine.dispatch("cancel", { ctx })
+    async () => await executeStateAction(ctx, "cancel")
   );
 });
 
 bot.command("trace", async (ctx) => {
-  ctx.reply(stateMachine.getCurrentState());
+  const state = await getCurrentState(ctx);
+  ctx.reply(state);
 });
 
 bot.command("reset", async (ctx) => {
-  stateMachine.reset();
+  await resetState(ctx);
   ctx.reply("Reseted");
 });
 
 bot.command("cancel", async (ctx) => {
   await dispatchWithErrorHandling(
     ctx,
-    async () => await stateMachine.dispatch("cancel", { ctx })
+    async () => await executeStateAction(ctx, "cancel")
   );
 });
 
 bot.command("s", async (ctx) => {
   await dispatchWithErrorHandling(
     ctx,
-    async () => await stateMachine.dispatch("submit", { ctx })
+    async () => await executeStateAction(ctx, "submit")
   );
 });
 
@@ -80,27 +76,18 @@ bot.on("callback_query:data", async (ctx) => {
   }
   await dispatchWithErrorHandling(
     ctx,
-    async () => await stateMachine.dispatch(action, { ctx })
+    async () => await executeStateAction(ctx, action)
   );
 });
 
 bot.on("message", async (ctx) => {
-  if (stateMachine.getCurrentState() !== "idle") {
+  const state = await getCurrentState(ctx);
+  if (state !== "idle") {
     await dispatchWithErrorHandling(
       ctx,
-      async () => await stateMachine.dispatch("input", { ctx })
+      async () => await executeStateAction(ctx, "input")
     );
   }
-});
-
-bot.command("praise", async (ctx) => {
-  const author = await ctx.getAuthor();
-  await ctx.reply(`${author.user.first_name} molodec`);
-});
-
-bot.command("pnh", async (ctx) => {
-  const author = await ctx.getAuthor();
-  await ctx.reply(`${author.user.first_name}, idi ty nahui!`);
 });
 
 bot.start();

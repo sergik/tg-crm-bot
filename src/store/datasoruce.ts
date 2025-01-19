@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import "reflect-metadata";
 import { config } from "../config";
+import { ContactMachineStates } from "../contact.state.machine";
 
 @Entity()
 export class User {
@@ -20,6 +21,9 @@ export class User {
 
   @Column()
   googleAuthInfo!: string;
+
+  @Column({ nullable: true })
+  currentState?: ContactMachineStates;
 }
 
 export const AppDataSource = new DataSource({
