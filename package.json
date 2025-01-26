@@ -7,6 +7,7 @@
     "build": "tsc",
     "test": "test",
     "start": "ts-node ./src/index.ts",
+    "start-auth": "ts-node ./src/auth-page.ts",
     "sandbox": "ts-node ./src/sandbox.ts"
   },
   "author": "volkovich",
@@ -16,6 +17,7 @@
     "@hubspot/api-client": "^11.1.0",
     "axios": "^1.7.2",
     "crypto": "^1.0.1",
+    "express": "^4.21.2",
     "googleapis": "^105.0.0",
     "grammy": "^1.22.4",
     "openai": "^4.53.2",
@@ -27,6 +29,7 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "prettier": "^3.2.5",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",

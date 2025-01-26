@@ -11,6 +11,7 @@ interface IConfig {
   PG_PASSWORD: string;
   PG_PORT: number;
   PG_DATABASE: string;
+  AUTH_APP_PORT: number;
 }
 
 export const config: IConfig = load({
@@ -25,4 +26,5 @@ export const config: IConfig = load({
   PG_PASSWORD: String,
   PG_PORT: Number,
   PG_DATABASE: String,
+  AUTH_APP_PORT: Number,
 });
