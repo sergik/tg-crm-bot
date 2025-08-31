@@ -45,10 +45,6 @@ export function handleError(err: any) {
   }
 }
 
-export function checkTokenExists(): boolean {
-  return fs.existsSync(TOKEN_PATH);
-}
-
 export async function saveToken(code: string, store: UserStore): Promise<void> {
   const oAuth2Client = getOAuthClient();
   const promise = new Promise<string>((resolve, reject) => {
