@@ -13,11 +13,7 @@ const bot = new Bot(config.TG_BOT_TOKEN);
 
 bot.command("a", async (ctx) => {
   await dispatchWithErrorHandling(ctx, async () => {
-    if (checkTokenExists()) {
-      await executeStateAction(ctx, "start");
-    } else {
-      await executeStateAction(ctx, "authorize");
-    }
+    await executeStateAction(ctx, "start");
   });
 });
 
